@@ -61,6 +61,19 @@ func PrintMat(img cv.Mat) error {
 	return nil
 }
 
+func CalculateSize(img cv.Mat, term image.Point) image.Point {
+	// This calculates the appropriate size for the frame, maintaining
+	// the same aspect ratio, and filling the terminal window fully
+
+	var termRatio = float64(term.Y*2) / float64(term.X)
+	var imgRatio = float64(img.Rows()) / float64(img.Cols())
+	if imgRatio > termRatio {
+		return image.Point{X: int(float64(term.Y*2) / imgRatio), Y: term.Y * 2}
+	} else {
+		return image.Point{X: term.X, Y: int(float64(term.X) * imgRatio)}
+	}
+}
+
 func main() {
 	webcam, err := cv.VideoCaptureDevice(0)
 	if err != nil {
@@ -110,23 +123,13 @@ func main() {
 			return
 		}
 
-		// This calculates the appropriate size for the frame, maintaining
-		// the same aspect ratio, and filling the terminal window fully
-		var size image.Point
-		var termRatio = float64(height*2) / float64(width)
-		var imgRatio = float64(img.Rows()) / float64(img.Cols())
-		if imgRatio > termRatio {
-			size = image.Point{X: int(float64(height*2) / imgRatio), Y: height * 2}
-		} else {
-			size = image.Point{X: width, Y: int(float64(width) * imgRatio)}
-		}
-
-		cv.Resize(img, &img, size, 0, 0, 1)
+		cv.Resize(img, &img, CalculateSize(img, image.Point{X: width, Y: height}), 0, 0, 1)
 
 		err = PrintMat(img)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 			return
 		}
+		running = false
 	}
 }
