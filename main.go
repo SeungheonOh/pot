@@ -6,10 +6,14 @@ import (
 	"image"
 	"os"
 	"os/signal"
+	"syscall"
 
 	cv "gocv.io/x/gocv"
 	"golang.org/x/crypto/ssh/terminal"
 )
+
+var running = true
+var width, height int
 
 func PrintMat(img cv.Mat) error {
 	imgPtr := img.DataPtrUint8()
@@ -68,28 +72,38 @@ func main() {
 	img := cv.NewMat()
 	defer img.Close()
 
-	// Be sure to enable cursor when we exit
-	defer fmt.Print("\033[?25h")
+	// Get initial terminal size
+	width, height, err = terminal.GetSize(int(os.Stdout.Fd()))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to get terminal size: %s\n", err.Error())
+		return
+	}
 
 	// Handle SIGINT and stop the loop cleanly
-	var running = true
-	var signals = make(chan os.Signal, 1)
-	signal.Notify(signals, os.Interrupt)
-	go func(run *bool) {
-		<-signals
-		*run = false
-	}(&running)
+	// Handle SIGWINCH to get new terminal size
+	go func() {
+		var signals = make(chan os.Signal, 1)
+		signal.Notify(signals, os.Interrupt, syscall.SIGWINCH)
+		for {
+			sig := <-signals
+			switch sig {
+			case os.Interrupt:
+				running = false
+				close(signals)
+				return
+			case syscall.SIGWINCH:
+				width, height, _ = terminal.GetSize(int(os.Stdout.Fd()))
+			}
+		}
+	}()
+
+	// Be sure to enable cursor when we exit
+	defer fmt.Print("\033[?25h")
 
 	// Reset/clear terminal and hide cursor
 	fmt.Print("\033c\033[?25l")
 
 	for running {
-		width, height, err := terminal.GetSize(int(os.Stdout.Fd()))
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to get terminal size: %s\n", err.Error())
-			return
-		}
-
 		ok := webcam.Read(&img)
 		if !ok {
 			fmt.Fprintln(os.Stderr, "Failed to read from camera")
