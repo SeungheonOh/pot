@@ -2,6 +2,7 @@ package main
 
 import (
 	//"bufio"
+	"errors"
 	"fmt"
 	cv "gocv.io/x/gocv"
 	"image"
@@ -11,8 +12,11 @@ import (
 	"strings"
 )
 
-func PrintMat(img cv.Mat) {
+func PrintMat(img cv.Mat) error {
 	imgPtr := img.DataPtrUint8()
+	if img.Cols()*img.Rows()*3 != len(imgPtr) {
+		return errors.New("Only supports Color RGB image for now")
+	}
 
 	for i := 0; i < img.Rows(); i += 2 {
 		for j := 0; j < img.Cols()*3; j += 3 {
@@ -40,6 +44,7 @@ func PrintMat(img cv.Mat) {
 		}
 		fmt.Print("\n")
 	}
+	return nil
 }
 
 func main() {
