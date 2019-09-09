@@ -8,6 +8,7 @@ import (
 	"image"
 	"os"
 	"os/exec"
+	"os/signal"
 	"strconv"
 	"strings"
 )
@@ -64,8 +65,17 @@ func main() {
 	out, _ := cmd.Output()
 	termSize := strings.Fields(string(out))
 
+	// Handle SIGINT and stop the loop cleanly
+	var running = true
+	var signals = make(chan os.Signal, 1)
+	signal.Notify(signals, os.Interrupt)
+	go func(run *bool) {
+		<-signals
+		*run = false
+	}(&running)
+
 	fmt.Print("\033[s\033c")
-	for {
+	for running {
 		fmt.Print("\033[u")
 		ok := webcam.Read(&img)
 		if !ok {
