@@ -1,22 +1,28 @@
 package main
 
 import (
-	//"bufio"
 	"errors"
 	"fmt"
-	cv "gocv.io/x/gocv"
 	"image"
 	"os"
-	"os/exec"
-	"strconv"
-	"strings"
+	"os/signal"
+	"syscall"
+
+	cv "gocv.io/x/gocv"
+	"golang.org/x/crypto/ssh/terminal"
 )
+
+var running = true
+var width, height int
 
 func PrintMat(img cv.Mat) error {
 	imgPtr := img.DataPtrUint8()
 	if img.Cols()*img.Rows()*3 != len(imgPtr) {
 		return errors.New("Only supports Color RGB image for now")
 	}
+
+	// Move cursor to 0, 0
+	fmt.Print("\033[0;0H")
 
 	for i := 0; i < img.Rows(); i += 2 {
 		for j := 0; j < img.Cols()*3; j += 3 {
@@ -42,35 +48,85 @@ func PrintMat(img cv.Mat) error {
 					imgPtr[(i+1)*img.Cols()*3+j])
 			}
 		}
-		fmt.Print("\n")
+		// Don't draw a newline at the bottom of the terminal
+		// Also clear all characters to the edge of the terminal
+		// Prevents artifacts when the image.width < tty.width
+		if i != img.Rows()-2 {
+			fmt.Println("\033[K")
+		}
 	}
+	// Clear from the end of the picture to the bottom of the tty
+	// Also avoids leftover artifacts when image doesn't fill the tty
+	fmt.Print("\033[J")
 	return nil
 }
 
 func main() {
-	webcam, _ := cv.VideoCaptureDevice(0)
+	webcam, err := cv.VideoCaptureDevice(0)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to open camera: %s\n", err.Error())
+		return
+	}
 	defer webcam.Close()
 
 	img := cv.NewMat()
 	defer img.Close()
 
-	// For auto size window
-	cmd := exec.Command("stty", "size")
-	cmd.Stdin = os.Stdin
-	out, _ := cmd.Output()
-	termSize := strings.Fields(string(out))
+	// Get initial terminal size
+	width, height, err = terminal.GetSize(int(os.Stdout.Fd()))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to get terminal size: %s\n", err.Error())
+		return
+	}
 
-	fmt.Print("\033[s\033c")
-	for {
-		fmt.Print("\033[u")
-		webcam.Read(&img)
+	// Handle SIGINT and stop the loop cleanly
+	// Handle SIGWINCH to get new terminal size
+	go func() {
+		var signals = make(chan os.Signal, 1)
+		signal.Notify(signals, os.Interrupt, syscall.SIGWINCH)
+		for {
+			sig := <-signals
+			switch sig {
+			case os.Interrupt:
+				running = false
+				close(signals)
+				return
+			case syscall.SIGWINCH:
+				width, height, _ = terminal.GetSize(int(os.Stdout.Fd()))
+			}
+		}
+	}()
 
-		Width, _ := strconv.Atoi(termSize[1])
-		Height := Width * img.Rows() / img.Cols()
-		cv.Resize(img, &img, image.Point{Width, Height}, 0, 0, 1)
+	// Be sure to enable cursor when we exit
+	defer fmt.Print("\033[?25h")
 
-		PrintMat(img)
-		// Note :
-		// if anyone know to to flush in golang, plase add flushing, that will make it flicker-free(I mean that moving cursor)
+	// Reset/clear terminal and hide cursor
+	fmt.Print("\033c\033[?25l")
+
+	for running {
+		ok := webcam.Read(&img)
+		if !ok {
+			fmt.Fprintln(os.Stderr, "Failed to read from camera")
+			return
+		}
+
+		// This calculates the appropriate size for the frame, maintaining
+		// the same aspect ratio, and filling the terminal window fully
+		var size image.Point
+		var termRatio = float64(height*2) / float64(width)
+		var imgRatio = float64(img.Rows()) / float64(img.Cols())
+		if imgRatio > termRatio {
+			size = image.Point{X: int(float64(height*2) / imgRatio), Y: height * 2}
+		} else {
+			size = image.Point{X: width, Y: int(float64(width) * imgRatio)}
+		}
+
+		cv.Resize(img, &img, size, 0, 0, 1)
+
+		err = PrintMat(img)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			return
+		}
 	}
 }
