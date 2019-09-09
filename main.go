@@ -1,16 +1,14 @@
 package main
 
 import (
-	//"bufio"
 	"errors"
 	"fmt"
-	cv "gocv.io/x/gocv"
 	"image"
 	"os"
-	"os/exec"
 	"os/signal"
-	"strconv"
-	"strings"
+
+	cv "gocv.io/x/gocv"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 func PrintMat(img cv.Mat) error {
@@ -43,8 +41,16 @@ func PrintMat(img cv.Mat) error {
 					imgPtr[(i+1)*img.Cols()*3+j])
 			}
 		}
-		fmt.Print("\n")
+		// Don't draw a newline at the bottom of the terminal
+		// Also clear all characters to the edge of the terminal
+		// Prevents artifacts when the image.width < tty.width
+		if i != img.Rows()-2 {
+			fmt.Println("\033[K")
+		}
 	}
+	// Clear from the end of the picture to the bottom of the tty
+	// Also avoids leftover artifacts when image doesn't fill the tty
+	fmt.Print("\033[J")
 	return nil
 }
 
@@ -59,12 +65,6 @@ func main() {
 	img := cv.NewMat()
 	defer img.Close()
 
-	// For auto size window
-	cmd := exec.Command("stty", "size")
-	cmd.Stdin = os.Stdin
-	out, _ := cmd.Output()
-	termSize := strings.Fields(string(out))
-
 	// Handle SIGINT and stop the loop cleanly
 	var running = true
 	var signals = make(chan os.Signal, 1)
@@ -76,16 +76,30 @@ func main() {
 
 	fmt.Print("\033[s\033c")
 	for running {
-		fmt.Print("\033[u")
+		width, height, err := terminal.GetSize(int(os.Stdout.Fd()))
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to get terminal size: %s\n", err.Error())
+			return
+		}
+
 		ok := webcam.Read(&img)
 		if !ok {
 			fmt.Fprintln(os.Stderr, "Failed to read from camera")
 			return
 		}
 
-		Width, _ := strconv.Atoi(termSize[1])
-		Height := Width * img.Rows() / img.Cols()
-		cv.Resize(img, &img, image.Point{Width, Height}, 0, 0, 1)
+		// This calculates the appropriate size for the frame, maintaining
+		// the same aspect ratio, and filling the terminal window fully
+		var size image.Point
+		var termRatio = float64(height*2) / float64(width)
+		var imgRatio = float64(img.Rows()) / float64(img.Cols())
+		if imgRatio > termRatio {
+			size = image.Point{X: int(float64(height*2) / imgRatio), Y: height * 2}
+		} else {
+			size = image.Point{X: width, Y: int(float64(width) * imgRatio)}
+		}
+
+		cv.Resize(img, &img, size, 0, 0, 1)
 
 		err = PrintMat(img)
 		if err != nil {
