@@ -17,6 +17,9 @@ func PrintMat(img cv.Mat) error {
 		return errors.New("Only supports Color RGB image for now")
 	}
 
+	// Move cursor to 0, 0
+	fmt.Print("\033[0;0H")
+
 	for i := 0; i < img.Rows(); i += 2 {
 		for j := 0; j < img.Cols()*3; j += 3 {
 			if i+1 >= img.Rows() { // if height is not even, prevent to check pixel that isn't exist
@@ -65,6 +68,9 @@ func main() {
 	img := cv.NewMat()
 	defer img.Close()
 
+	// Be sure to enable cursor when we exit
+	defer fmt.Print("\033[?25h")
+
 	// Handle SIGINT and stop the loop cleanly
 	var running = true
 	var signals = make(chan os.Signal, 1)
@@ -74,7 +80,9 @@ func main() {
 		*run = false
 	}(&running)
 
-	fmt.Print("\033[s\033c")
+	// Reset/clear terminal and hide cursor
+	fmt.Print("\033c\033[?25l")
+
 	for running {
 		width, height, err := terminal.GetSize(int(os.Stdout.Fd()))
 		if err != nil {
@@ -106,7 +114,5 @@ func main() {
 			fmt.Fprintln(os.Stderr, err.Error())
 			return
 		}
-		// Note :
-		// if anyone know to to flush in golang, plase add flushing, that will make it flicker-free(I mean that moving cursor)
 	}
 }
