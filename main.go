@@ -130,6 +130,5 @@ func main() {
 			fmt.Fprintln(os.Stderr, err.Error())
 			return
 		}
-		running = false
 	}
 }
