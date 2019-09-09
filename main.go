@@ -48,7 +48,11 @@ func PrintMat(img cv.Mat) error {
 }
 
 func main() {
-	webcam, _ := cv.VideoCaptureDevice(0)
+	webcam, err := cv.VideoCaptureDevice(0)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to open camera: %s\n", err.Error())
+		return
+	}
 	defer webcam.Close()
 
 	img := cv.NewMat()
@@ -63,13 +67,21 @@ func main() {
 	fmt.Print("\033[s\033c")
 	for {
 		fmt.Print("\033[u")
-		webcam.Read(&img)
+		ok := webcam.Read(&img)
+		if !ok {
+			fmt.Fprintln(os.Stderr, "Failed to read from camera")
+			return
+		}
 
 		Width, _ := strconv.Atoi(termSize[1])
 		Height := Width * img.Rows() / img.Cols()
 		cv.Resize(img, &img, image.Point{Width, Height}, 0, 0, 1)
 
-		PrintMat(img)
+		err = PrintMat(img)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			return
+		}
 		// Note :
 		// if anyone know to to flush in golang, plase add flushing, that will make it flicker-free(I mean that moving cursor)
 	}
