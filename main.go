@@ -143,9 +143,11 @@ func main() {
 			default:
 				break
 			}
-		} else if os.Args[i][len(os.Args[i])-4:][0] == '.' || os.Args[i][len(os.Args[i])-5:][0] == '.' {
-			// if argument is path
-			fileName = os.Args[i]
+		} else if len(os.Args[i]) > 5 {
+			if os.Args[i][len(os.Args[i])-4:][0] == '.' || os.Args[i][len(os.Args[i])-5:][0] == '.' {
+				// if argument is path
+				fileName = os.Args[i]
+			}
 		}
 	}
 
