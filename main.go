@@ -4,10 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
+	"time"
 
 	cv "gocv.io/x/gocv"
 	"golang.org/x/crypto/ssh/terminal"
@@ -71,258 +73,185 @@ func CalculateSize(img cv.Mat, term image.Point) image.Point {
 	}
 }
 
-func main() {
-
-	App := Application{
-		Name:        "PixelOnTerminal",
-		Author:      "SeungheonOh 2019\ngithub.com/SeungheonOh/PixelOnTerminal",
-		Description: "A cool guy way to view image in terminal.",
-		Usage:       "pot <SUBCOMMANDS> <OPTIONS>",
-
-		SubCommands: []SubCommand{
-			SubCommand{
-				Name:        "cam",
-				Description: "Get input from a webcam (defualt=device 0)",
-				Options: []Option{
-					Option{
-						Description: "Strach input to fit full therminal screen",
-						Flag:        "-F",
-					},
-				},
-				Run: func(command SubCommand, args []string) {
-					var fullScreen bool = false
-					var flags int = 0
-					for _, arg := range args {
-						for _, option := range command.Options {
-							if arg == option.Flag && arg == "-F" {
-								fullScreen = true
-								flags += 1
-							}
-						}
-					}
-					camNum := 0
-					if len(args)-flags > 2 {
-						num, err := strconv.Atoi(args[2])
-						if err != nil {
-							return
-						}
-						camNum = num
-					}
-					webcam, err := cv.VideoCaptureDevice(camNum)
-					if err != nil {
-						fmt.Fprintf(os.Stderr, "Failed to open camera: %s\n", err.Error())
-						return
-					}
-					defer webcam.Close()
-
-					img := cv.NewMat()
-					defer img.Close()
-
-					// Get initial terminal size
-					width, height, err := terminal.GetSize(int(os.Stdout.Fd()))
-					if err != nil {
-						fmt.Fprintf(os.Stderr, "Failed to get terminal size: %s\n", err.Error())
-						return
-					}
-
-					// Handle SIGINT and stop the loop cleanly
-					// Handle SIGWINCH to get new terminal size
-					go func() {
-						var signals = make(chan os.Signal, 1)
-						signal.Notify(signals, os.Interrupt, syscall.SIGWINCH)
-						for {
-							sig := <-signals
-							switch sig {
-							case os.Interrupt:
-								running = false
-								close(signals)
-								return
-							case syscall.SIGWINCH:
-								width, height, _ = terminal.GetSize(int(os.Stdout.Fd()))
-							}
-						}
-					}()
-
-					// Be sure to enable cursor when we exit
-					defer fmt.Print("\033[?25h")
-
-					// Reset/clear terminal and hide cursor
-					fmt.Print("\033c\033[?25l")
-
-					for running {
-						ok := webcam.Read(&img)
-						if !ok {
-							fmt.Fprintln(os.Stderr, "Failed to read from camera")
-							return
-						}
-
-						var imgSize image.Point
-
-						if fullScreen {
-							imgSize = image.Point{X: width, Y: height * 2}
-						} else {
-							imgSize = CalculateSize(img, image.Point{X: width, Y: height})
-						}
-
-						cv.Resize(img, &img, imgSize, 0, 0, 1)
-
-						err = PrintMat(img)
-						if err != nil {
-							fmt.Fprintln(os.Stderr, err.Error())
-							return
-						}
-					}
-				},
-			},
-			SubCommand{
-				Name:        "image",
-				Description: "Get input from an image",
-				Options: []Option{
-					Option{
-						Description: "Strach input to fit full therminal screen",
-						Flag:        "-F",
-					},
-				},
-				Run: func(command SubCommand, args []string) {
-					var fullScreen bool = false
-					flags := 0
-					for _, arg := range args {
-						for _, option := range command.Options {
-							if arg == option.Flag && arg == "-F" {
-								flags++
-								fullScreen = true
-							}
-						}
-					}
-					if len(args)-flags < 3 {
-						fmt.Println("Need file path for input")
-						return
-					}
-					img := cv.NewMat()
-					defer img.Close()
-
-					width, height, err := terminal.GetSize(int(os.Stdout.Fd()))
-					if err != nil {
-						fmt.Fprintf(os.Stderr, "Failed to get terminal size: %s\n", err.Error())
-						return
-					}
-
-					img = cv.IMRead(args[2], 1)
-					if img.Empty() {
-						return
-					}
-
-					var imgSize image.Point
-
-					if fullScreen {
-						imgSize = image.Point{X: width, Y: height * 2}
-					} else {
-						imgSize = CalculateSize(img, image.Point{X: width, Y: height})
-					}
-
-					cv.Resize(img, &img, imgSize, 0, 0, 1)
-
-					err = PrintMat(img)
-					if err != nil {
-						fmt.Fprintln(os.Stderr, err.Error())
-						return
-					}
-				},
-			},
-			SubCommand{
-				Name:        "video",
-				Description: "Get input from a video",
-				Options: []Option{
-					Option{
-						Description: "Strach input to fit full therminal screen",
-						Flag:        "-F",
-					},
-				},
-				Run: func(command SubCommand, args []string) {
-					var fullScreen bool = false
-					flags := 0
-					for _, arg := range args {
-						for _, option := range command.Options {
-							if arg == option.Flag && arg == "-F" {
-								flags++
-								fullScreen = true
-							}
-						}
-					}
-					if len(args)-flags < 3 {
-						fmt.Println("Need file path for input")
-						return
-					}
-					video, err := cv.OpenVideoCapture(args[2])
-					if err != nil {
-						fmt.Fprintf(os.Stderr, "Failed to open File: %s\n", err.Error())
-						return
-					}
-					defer video.Close()
-
-					img := cv.NewMat()
-					defer img.Close()
-
-					// Get initial terminal size
-					width, height, err := terminal.GetSize(int(os.Stdout.Fd()))
-					if err != nil {
-						fmt.Fprintf(os.Stderr, "Failed to get terminal size: %s\n", err.Error())
-						return
-					}
-
-					// Handle SIGINT and stop the loop cleanly
-					// Handle SIGWINCH to get new terminal size
-					go func() {
-						var signals = make(chan os.Signal, 1)
-						signal.Notify(signals, os.Interrupt, syscall.SIGWINCH)
-						for {
-							sig := <-signals
-							switch sig {
-							case os.Interrupt:
-								running = false
-								close(signals)
-								return
-							case syscall.SIGWINCH:
-								width, height, _ = terminal.GetSize(int(os.Stdout.Fd()))
-							}
-						}
-					}()
-
-					// Be sure to enable cursor when we exit
-					defer fmt.Print("\033[?25h")
-
-					// Reset/clear terminal and hide cursor
-					fmt.Print("\033c\033[?25l")
-
-					for running {
-						ok := video.Read(&img)
-						if !ok {
-							video.Set(0, 0) // Restart Video from beginning
-							continue
-							running = false
-							return
-						}
-
-						var imgSize image.Point
-
-						if fullScreen {
-							imgSize = image.Point{X: width, Y: height * 2}
-						} else {
-							imgSize = CalculateSize(img, image.Point{X: width, Y: height})
-						}
-
-						cv.Resize(img, &img, imgSize, 0, 0, 1)
-
-						err = PrintMat(img)
-						if err != nil {
-							fmt.Fprintln(os.Stderr, err.Error())
-							return
-						}
-					}
-				},
-			},
-		},
+func LoadFromUrl(url string) (cv.Mat, error) {
+	response, err := http.Get(url)
+	if err != nil {
+		return cv.NewMat(), errors.New("Failed load image")
 	}
 
-	App.Run(os.Args)
+	body, _ := ioutil.ReadAll(response.Body)
+	defer response.Body.Close()
+	img, err := cv.IMDecode(body, 1)
+
+	if err != nil {
+		return cv.NewMat(), errors.New("Failed decode image: ")
+	}
+
+	return img, nil
+}
+
+const (
+	NAME        = "PixelOnTerminal"
+	AUTHOR      = "SeungheonOh 2019|github.com/SeungheonOh/PixelOnTerminal"
+	DESCRIPTION = "A cool guy way to view image/video/webcam in terminal enviroment"
+	USAGE       = "pot <IMAGE/VIDEO/URL> <OPTIONS>"
+)
+
+var (
+	OPTIONS = [...]string{
+		"-F",
+		"-E",
+		"-C",
+	}
+	OPTION_DESCRIPTION = [...]string{
+		"Full screen mode, discard screen ratio",
+		"Repeat Video, Gif, Image",
+		"Load webcam, image/Video/URL is not required for this option",
+	}
+)
+
+func main() {
+	img := cv.NewMat()
+	defer img.Close()
+
+	var fps int = 30
+
+	// Options
+	var fileName string = ""
+	var fullScreen bool = false
+	var dontExit bool = false
+	var useCam bool = false
+
+	_ = useCam
+	_ = fileName
+	_ = dontExit
+	_ = fullScreen
+
+	for i := 0; i < len(os.Args); i++ {
+		if os.Args[i][0] == '-' {
+			fmt.Println(os.Args[i])
+			// If argument is option
+			switch os.Args[i] {
+			case "-F", "-f":
+				fullScreen = true
+				break
+			case "-E", "-e":
+				dontExit = true
+				break
+			case "-C", "-c":
+				useCam = true
+				break
+			default:
+				break
+			}
+		} else if os.Args[i][len(os.Args[i])-4:][0] == '.' || os.Args[i][len(os.Args[i])-5:][0] == '.' {
+			fileName = os.Args[i]
+		}
+	}
+
+	if fileName == "" && !useCam {
+		fmt.Print(NAME, "\n")
+		fmt.Print(DESCRIPTION, "\n\n")
+		fmt.Print("USAGE:\n")
+		fmt.Print("\t", USAGE, "\n\n")
+		fmt.Print("OPTIONS:\n")
+		for i, option := range OPTIONS {
+			fmt.Print("\t", option, "   ", OPTION_DESCRIPTION[i], "\n")
+		}
+		fmt.Print("\n", AUTHOR, "\n")
+		return
+	}
+
+	var capture *cv.VideoCapture // Used for both image and video
+	if useCam {
+		cam, err := cv.VideoCaptureDevice(0)
+		fmt.Println("loading capture")
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed open camera: %s\n", err.Error())
+			return
+		}
+		capture = cam
+	} else {
+		video, err := cv.OpenVideoCapture(fileName)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed load image/video: %s\n", err.Error())
+			return
+		}
+		capture = video
+	}
+
+	if !capture.IsOpened() && !useCam {
+		img, err := LoadFromUrl(fileName)
+		if err != nil || img.Empty() {
+			fmt.Fprintf(os.Stderr, "Failed load image: %s\n", err.Error())
+			return
+		}
+	}
+
+	fps = int(capture.Get(5))
+
+	// Get initial terminal size
+	width, height, err := terminal.GetSize(int(os.Stdout.Fd()))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to get terminal size: %s\n", err.Error())
+		return
+	}
+
+	// Handle SIGINT and stop the loop cleanly
+	// Handle SIGWINCH to get new terminal size
+	go func() {
+		var signals = make(chan os.Signal, 1)
+		signal.Notify(signals, os.Interrupt, syscall.SIGWINCH)
+		for {
+			sig := <-signals
+			switch sig {
+			case os.Interrupt:
+				running = false
+				close(signals)
+				return
+			case syscall.SIGWINCH:
+				width, height, _ = terminal.GetSize(int(os.Stdout.Fd()))
+			}
+		}
+	}()
+
+	// Be sure to enable cursor when we exit
+	defer fmt.Print("\033[?25h")
+
+	// Reset/clear terminal and hide cursor
+	fmt.Print("\033c\033[?25l")
+
+	for running {
+		start := time.Now()
+		ok := capture.Read(&img)
+		if !ok {
+			if dontExit {
+				capture.Set(0, 0) // Restart Video from beginning
+				continue
+			}
+			running = false
+			return
+		}
+
+		var imgSize image.Point
+
+		if fullScreen {
+			imgSize = image.Point{X: width, Y: height * 2}
+		} else {
+			imgSize = CalculateSize(img, image.Point{X: width, Y: height})
+		}
+
+		cv.Resize(img, &img, imgSize, 0, 0, 1)
+
+		err = PrintMat(img)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			return
+		}
+		end := time.Now()
+		//delayFor := int(int64() )
+		time.Sleep(time.Second/time.Duration(fps) - end.Sub(start))
+		_ = start
+		_ = end
+	}
 }
