@@ -30,7 +30,7 @@ func PrintMat(img cv.Mat) error {
 	for i := 0; i < img.Rows(); i += 2 {
 		for j := 0; j < img.Cols()*3; j += 3 {
 			if i+1 >= img.Rows() { // if height is not even, prevent to check pixel that isn't exist
-				fmt.Printf("\033[48;2;%d;%d;%dm\033[30m▄\033[49m\033[48m",
+				fmt.Printf("\033[48;2;%d;%d;%dm\033[30m▄\033[49m\033[39m",
 					// Top Pixels
 					imgPtr[i*img.Cols()*3+j+2],
 					imgPtr[i*img.Cols()*3+j+1],
@@ -129,7 +129,6 @@ func main() {
 
 	for i := 0; i < len(os.Args); i++ {
 		if os.Args[i][0] == '-' {
-			fmt.Println(os.Args[i])
 			// If argument is option
 			switch os.Args[i] {
 			case "-F", "-f":
@@ -145,11 +144,13 @@ func main() {
 				break
 			}
 		} else if os.Args[i][len(os.Args[i])-4:][0] == '.' || os.Args[i][len(os.Args[i])-5:][0] == '.' {
+			// if argument is path
 			fileName = os.Args[i]
 		}
 	}
 
 	if fileName == "" && !useCam {
+		// Help message
 		fmt.Print(NAME, "\n")
 		fmt.Print(DESCRIPTION, "\n\n")
 		fmt.Print("USAGE:\n")
@@ -162,7 +163,8 @@ func main() {
 		return
 	}
 
-	var capture *cv.VideoCapture // Used for both image and video
+	// Used for both image and video
+	var capture *cv.VideoCapture
 	if useCam {
 		cam, err := cv.VideoCaptureDevice(0)
 		fmt.Println("loading capture")
@@ -188,7 +190,7 @@ func main() {
 		}
 	}
 
-	fps = int(capture.Get(5))
+	fps = int(capture.Get(5)) // Get FPS value for video/GIF
 
 	// Get initial terminal size
 	width, height, err := terminal.GetSize(int(os.Stdout.Fd()))
@@ -222,11 +224,14 @@ func main() {
 	fmt.Print("\033c\033[?25l")
 
 	for running {
+		// Timer for precise frame calculation
 		start := time.Now()
+
 		ok := capture.Read(&img)
 		if !ok {
 			if dontExit {
-				capture.Set(0, 0) // Restart Video from beginning
+				// Restart Video from beginning
+				capture.Set(0, 0)
 				continue
 			}
 			running = false
@@ -249,9 +254,6 @@ func main() {
 			return
 		}
 		end := time.Now()
-		//delayFor := int(int64() )
 		time.Sleep(time.Second/time.Duration(fps) - end.Sub(start))
-		_ = start
-		_ = end
 	}
 }
