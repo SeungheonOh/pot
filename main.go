@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"image"
 	"io/ioutil"
@@ -66,14 +67,16 @@ func CalculateSize(img cv.Mat, term image.Point) image.Point {
 
 	var termRatio = float64(term.Y*2) / float64(term.X)
 	var imgRatio = float64(img.Rows()) / float64(img.Cols())
+	var ret image.Point
 	if imgRatio > termRatio {
-		return image.Point{X: int(float64(term.Y*2) / imgRatio), Y: term.Y * 2}
+		ret = image.Point{X: int(float64(term.Y*2) / imgRatio), Y: term.Y * 2}
 	} else {
-		return image.Point{X: term.X, Y: int(float64(term.X) * imgRatio)}
+		ret = image.Point{X: term.X, Y: int(float64(term.X) * imgRatio)}
 	}
+	return ret
 }
 
-func LoadFromUrl(url string) (cv.Mat, error) {
+func LoadFromURL(url string) (cv.Mat, error) {
 	response, err := http.Get(url)
 	if err != nil {
 		return cv.NewMat(), errors.New("Failed load image")
@@ -98,58 +101,42 @@ const (
 )
 
 var (
-	OPTIONS = [...]string{
-		"-F",
-		"-E",
-		"-C",
-	}
-	OPTION_DESCRIPTION = [...]string{
-		"Full screen mode, discard screen ratio",
-		"Repeat Video, Gif, Image",
-		"Load webcam, image/Video/URL is not required for this option",
-	}
+	fileName   string = ""
+	fullScreen bool   = false
+	dontExit   bool   = false
+	useCam     bool   = false
+
+	Arguments *flag.FlagSet
 )
 
-func main() {
-	img := cv.NewMat()
-	defer img.Close()
+func init() {
+	Arguments = flag.NewFlagSet("", flag.ExitOnError)
 
+	Arguments.BoolVar(&fullScreen, "s", false, "Strach image to the size of terminal")
+	Arguments.BoolVar(&fullScreen, "S", false, "Strach image to the size of terminal")
+
+	Arguments.BoolVar(&dontExit, "e", false, "Repeat the input until keyboard interupt")
+	Arguments.BoolVar(&dontExit, "E", false, "Repeat the input until keyboard interupt")
+
+	Arguments.BoolVar(&useCam, "c", false, "Fetch webcam stream and print")
+	Arguments.BoolVar(&useCam, "C", false, "Fetch webcam stream and print")
+}
+
+func main() {
 	var fps int = 30
 
-	// Options
-	var fileName string = ""
-	var fullScreen bool = false
-	var dontExit bool = false
-	var useCam bool = false
+	var ArgIn []string
 
-	_ = useCam
-	_ = fileName
-	_ = dontExit
-	_ = fullScreen
-
-	for i := 0; i < len(os.Args); i++ {
-		if os.Args[i][0] == '-' {
-			// If argument is option
-			switch os.Args[i] {
-			case "-F", "-f":
-				fullScreen = true
-				break
-			case "-E", "-e":
-				dontExit = true
-				break
-			case "-C", "-c":
-				useCam = true
-				break
-			default:
-				break
-			}
-		} else if len(os.Args[i]) > 5 {
-			if os.Args[i][len(os.Args[i])-4:][0] == '.' || os.Args[i][len(os.Args[i])-5:][0] == '.' {
-				// if argument is path
-				fileName = os.Args[i]
-			}
+	for _, arg := range os.Args[1:] {
+		fmt.Println(arg)
+		if len(arg) > 3 {
+			fileName = arg // if argument is path
+		} else {
+			ArgIn = append(ArgIn, arg)
 		}
 	}
+
+	Arguments.Parse(ArgIn)
 
 	if fileName == "" && !useCam {
 		// Help message
@@ -158,12 +145,13 @@ func main() {
 		fmt.Print("USAGE:\n")
 		fmt.Print("\t", USAGE, "\n\n")
 		fmt.Print("OPTIONS:\n")
-		for i, option := range OPTIONS {
-			fmt.Print("\t", option, "   ", OPTION_DESCRIPTION[i], "\n")
-		}
+		Arguments.PrintDefaults()
 		fmt.Print("\n", AUTHOR, "\n")
 		return
 	}
+
+	img := cv.NewMat()
+	defer img.Close()
 
 	// Used for both image and video
 	var capture *cv.VideoCapture
@@ -185,7 +173,7 @@ func main() {
 	}
 
 	if !capture.IsOpened() && !useCam {
-		img, err := LoadFromUrl(fileName)
+		img, err := LoadFromURL(fileName)
 		if err != nil || img.Empty() {
 			fmt.Fprintf(os.Stderr, "Failed load image: %s\n", err.Error())
 			return
