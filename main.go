@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -102,6 +103,7 @@ const (
 
 var (
 	fileName   string = ""
+	useWinId   bool   = false
 	fullScreen bool   = false
 	dontExit   bool   = false
 	useCam     bool   = false
@@ -111,6 +113,9 @@ var (
 
 func init() {
 	Arguments = flag.NewFlagSet("", flag.ExitOnError)
+
+	Arguments.BoolVar(&useWinId, "w", false, "Caputre from X")
+	Arguments.BoolVar(&useWinId, "W", false, "Caputre from X")
 
 	Arguments.BoolVar(&fullScreen, "s", false, "Strach image to the size of terminal")
 	Arguments.BoolVar(&fullScreen, "S", false, "Strach image to the size of terminal")
@@ -128,7 +133,6 @@ func main() {
 	var ArgIn []string
 
 	for _, arg := range os.Args[1:] {
-		fmt.Println(arg)
 		if len(arg) > 3 {
 			fileName = arg // if argument is path
 		} else {
@@ -154,6 +158,7 @@ func main() {
 	defer img.Close()
 
 	// Used for both image and video
+	var Graber *XScreenGraber
 	var capture *cv.VideoCapture
 	if useCam {
 		cam, err := cv.VideoCaptureDevice(0)
@@ -163,6 +168,8 @@ func main() {
 			return
 		}
 		capture = cam
+	} else if useWinId {
+		Graber = NewXScreenGraber()
 	} else {
 		video, err := cv.OpenVideoCapture(fileName)
 		if err != nil {
@@ -172,7 +179,7 @@ func main() {
 		capture = video
 	}
 
-	if !capture.IsOpened() && !useCam {
+	if !useCam && !useWinId && !capture.IsOpened() {
 		img, err := LoadFromURL(fileName)
 		if err != nil || img.Empty() {
 			fmt.Fprintf(os.Stderr, "Failed load image: %s\n", err.Error())
@@ -180,7 +187,9 @@ func main() {
 		}
 	}
 
-	fps = int(capture.Get(5)) // Get FPS value for video/GIF
+	if !useWinId {
+		fps = int(capture.Get(5)) // Get FPS value for video/GIF
+	}
 
 	// Get initial terminal size
 	width, height, err := terminal.GetSize(int(os.Stdout.Fd()))
@@ -216,18 +225,31 @@ func main() {
 	for running {
 		// Timer for precise frame calculation
 		start := time.Now()
+		var img cv.Mat
 
-		ok := capture.Read(&img)
-		if !ok {
-			if dontExit {
-				// Restart Video from beginning
-				capture.Set(0, 0)
-				continue
+		if useWinId {
+			WinId, err := strconv.ParseUint(fileName, 16, 64)
+			if err != nil {
+				panic(err)
 			}
-			running = false
-			return
+			capture := Graber.GrabById(WinId)
+			img, err = cv.NewMatFromBytes(capture.Height, capture.Width, cv.MatTypeCV8UC3, capture.ToRGB())
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			img = cv.NewMat()
+			ok := capture.Read(&img)
+			if !ok {
+				if dontExit {
+					// Restart Video from beginning
+					capture.Set(0, 0)
+					continue
+				}
+				running = false
+				return
+			}
 		}
-
 		var imgSize image.Point
 
 		if fullScreen {
