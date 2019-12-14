@@ -17,7 +17,7 @@ func SetTerm() {
 }
 
 func RecoverTerm() {
-	defer fmt.Print("\033[?25h")
+	defer fmt.Print("\033[?25h\033c")
 }
 
 func TermSize() image.Point {
