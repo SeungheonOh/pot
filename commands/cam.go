@@ -76,5 +76,6 @@ func (command *camCommand) Run(args []string) error {
 		}
 	}
 
+	fmt.Print("\033c")
 	return nil
 }

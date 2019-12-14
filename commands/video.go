@@ -98,5 +98,6 @@ func (command *videoCommand) Run(args []string) error {
 		time.Sleep(time.Second/time.Duration(frameRate) - end.Sub(start))
 	}
 
+	fmt.Print("\033c")
 	return nil
 }
