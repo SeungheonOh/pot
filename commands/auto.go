@@ -40,5 +40,5 @@ func DetermineSubcommand(args []string) (Command, error) {
 			}
 		}
 	}
-	return nil, errors.New("Invalid Format")
+	return nil, errors.New("Subcommand not found")
 }
