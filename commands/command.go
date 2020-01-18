@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"errors"
 	"flag"
 )
 
@@ -29,7 +28,12 @@ func Run(args []string) error {
 
 	cmd, exist := CommandMap[subcommand]
 	if !exist {
-		return errors.New("Unknown command")
+		//return errors.New("Unknown command")
+		cmd, err := DetermineSubcommand(args[1:])
+		if err != nil {
+			return err
+		}
+		return cmd.Run(args[1:])
 	}
 
 	return cmd.Run(subarg)
