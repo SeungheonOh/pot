@@ -2,7 +2,6 @@ package commands
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 )
 
@@ -25,7 +24,6 @@ func DetermineSubcommand(args []string) (Command, error) {
 		if !strings.HasPrefix(arg, "-") {
 			if strings.HasPrefix(arg, "http") {
 				cmd, _ := CommandMap["url"]
-				fmt.Println("url")
 				return cmd, nil
 			}
 			fileExtension := strings.Split(arg, ".")[len(strings.Split(arg, "."))-1]
@@ -35,10 +33,12 @@ func DetermineSubcommand(args []string) (Command, error) {
 			} else if CheckExt(fileExtension, ImgExts) {
 				cmd, _ := CommandMap["image"]
 				return cmd, nil
-			} else {
+			} else if len(strings.Split(arg, ".")) != 1 {
 				return nil, errors.New("Invalid Format")
+			} else {
+				return nil, errors.New("Unknown Subcommand")
 			}
 		}
 	}
-	return nil, errors.New("Subcommand not found")
+	return nil, errors.New("Impossible")
 }
