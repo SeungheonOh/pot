@@ -19,6 +19,7 @@ type imageCommand struct {
 	fullScreen  bool
 	repeatImage bool
 	loadUrl     bool
+	renderer    string
 }
 
 func (command *imageCommand) Description() string {
@@ -41,6 +42,7 @@ func (command *imageCommand) FlagSet() *flag.FlagSet {
 	fs.BoolVar(&command.fullScreen, "f", false, "Make it fullscreen by stratching image")
 	fs.BoolVar(&command.repeatImage, "r", false, "Repeat the input until keyboard interupt")
 	fs.BoolVar(&command.loadUrl, "u", false, "Load from URL")
+	fs.StringVar(&command.renderer, "renderer", DEFAULT_RENDERER, "Select Renderer")
 
 	return fs
 }
@@ -87,9 +89,10 @@ func (command *imageCommand) Run(args []string) error {
 			imgSize = pixonterm.CalculateSize(img, terminalSize)
 		}
 		cv.Resize(img, &img, imgSize, 0, 0, 1)
-		err := pixonterm.PrintMat(img)
+		err := pixonterm.PrintMat(img, command.renderer)
 		if err != nil {
-			return errors.New("failed to print image")
+			//return errors.New("failed to print image")
+			return err
 		}
 	}
 

@@ -19,6 +19,7 @@ func init() {
 
 type screenCommand struct {
 	fullScreen bool
+	renderer   string
 }
 
 func (command *screenCommand) Description() string {
@@ -39,6 +40,7 @@ func (command *screenCommand) FlagSet() *flag.FlagSet {
 	}
 
 	fs.BoolVar(&command.fullScreen, "f", false, "Make it fullscreen by stratching image")
+	fs.StringVar(&command.renderer, "renderer", DEFAULT_RENDERER, "Select Renderer")
 
 	return fs
 }
@@ -92,7 +94,7 @@ func (command *screenCommand) Run(args []string) error {
 		}
 		cv.Resize(img, &img, imgSize, 0, 0, 1)
 
-		err = pixonterm.PrintMat(img)
+		err = pixonterm.PrintMat(img, command.renderer)
 		if err != nil {
 			return errors.New("failed to print image")
 		}

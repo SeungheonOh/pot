@@ -5,10 +5,11 @@ import (
 )
 
 const (
-	USAGE       = "\u001b[32mUSAGE\u001b[0m"
-	SUBCOMMANDS = "\u001b[32mSUBCOMMANDS\u001b[0m"
-	OPTIONS     = "\u001b[32mOPTIONS\u001b[0m"
-	DESCRIPTION = "\u001b[32mDESCRIPTION\u001b[0m"
+	USAGE            = "\u001b[32mUSAGE\u001b[0m"
+	SUBCOMMANDS      = "\u001b[32mSUBCOMMANDS\u001b[0m"
+	OPTIONS          = "\u001b[32mOPTIONS\u001b[0m"
+	DESCRIPTION      = "\u001b[32mDESCRIPTION\u001b[0m"
+	DEFAULT_RENDERER = "unicode-256"
 )
 
 var CommandMap = make(map[string]Command)

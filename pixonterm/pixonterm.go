@@ -26,8 +26,8 @@ func TermSize() image.Point {
 	return image.Point{width, height}
 }
 
-func PrintMat(img cv.Mat) error {
-	return renderer.Render(img, "unicode-256")
+func PrintMat(img cv.Mat, rendererName string) error {
+	return renderer.Render(img, rendererName)
 }
 
 func CalculateSize(img cv.Mat, term image.Point) image.Point {

@@ -18,6 +18,7 @@ func init() {
 type camCommand struct {
 	fullScreen bool
 	device     int
+	renderer   string
 }
 
 func (command *camCommand) Description() string {
@@ -39,6 +40,7 @@ func (command *camCommand) FlagSet() *flag.FlagSet {
 
 	fs.BoolVar(&command.fullScreen, "f", false, "Make it fullscreen by stratching image")
 	fs.IntVar(&command.device, "d", 0, "Select Image capturing device")
+	fs.StringVar(&command.renderer, "renderer", DEFAULT_RENDERER, "Select Renderer")
 
 	return fs
 }
@@ -70,7 +72,7 @@ func (command *camCommand) Run(args []string) error {
 			imgSize = pixonterm.CalculateSize(img, terminalSize)
 		}
 		cv.Resize(img, &img, imgSize, 0, 0, 1)
-		err := pixonterm.PrintMat(img)
+		err := pixonterm.PrintMat(img, command.renderer)
 		if err != nil {
 			return errors.New("failed to print image")
 		}
