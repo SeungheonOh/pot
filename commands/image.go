@@ -91,8 +91,7 @@ func (command *imageCommand) Run(args []string) error {
 		cv.Resize(img, &img, imgSize, 0, 0, 1)
 		err := pixonterm.PrintMat(img, command.renderer)
 		if err != nil {
-			//return errors.New("failed to print image")
-			return err
+			return errors.New("failed to print image")
 		}
 	}
 
