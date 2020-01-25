@@ -47,7 +47,7 @@ func (command *screenCommand) FlagSet() *flag.FlagSet {
 
 func (command *screenCommand) Run(args []string) error {
 	fs := command.FlagSet()
-	fs.Parse(args)
+	fs.Parse(args[4:])
 
 	if len(args) < 4 {
 		fs.Usage()
