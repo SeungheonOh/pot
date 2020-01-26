@@ -1,11 +1,12 @@
 # PixelOnTerminal
+**These are Pixels, but in Terminals**
 Light terminal media viewer using nothing but OpenCV
 
 ## Requirement
-You need 24bit color supported terminal emulator, such as `st`, `xterm`, `terminator`... : )
-
 Download with `go get https://github.com/SeungheonOh/PixelOnTerminal.git`
 or `git clone https://github.com/SeungheonOh/PixelOnTerminal.git`
+
+build with ```go build main.go``` and copy/rename compile executable ```main``` to your PATH.
 
 To build the project, you need 
 ```
@@ -13,6 +14,19 @@ Gocv
 Crypto
 Xlib(required only for screen subcommand)
 ```
+
+## Renderers
+### Why
+Pix has very easy to add/configure renderers, fully modularized by files. User can write their own why to print Image to the terminal, like ascii-only renderer or no-unicode renderer.
+
+### How to write one?
+```renderer/ascii.go``` would be a great example. 
+For additional information, it's getting ```cv.Mat```, which is already been resized for terminal size.
+```cv.Mat``` has size of (Terminal Cols)x(Terminal Rows * 2), Rows are as twice as big as terminal size since one character in terminal takes of 
+1x2 space(█) instead of 1x1. 
+
+Render function can be used in many possible ways, including, but not limited to, process given image to print on the screen.
+For example, Pixel on Terminal can be also used in X screen capturing with recording processor(or renderer).
 
 ## Subcommands
 ```
