@@ -101,7 +101,7 @@ func (command *screenCommand) Run(args []string) error {
 
 		err = pixonterm.PrintMat(img, command.renderer)
 		if err != nil {
-			return errors.New("failed to print image")
+			return err
 		}
 	}
 

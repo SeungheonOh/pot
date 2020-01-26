@@ -100,7 +100,7 @@ func (command *videoCommand) Run(args []string) error {
 		cv.Resize(img, &img, imgSize, 0, 0, 1)
 		err := pixonterm.PrintMat(img, command.renderer)
 		if err != nil {
-			return errors.New("failed to print frame")
+			return err
 		}
 		end := time.Now()
 		time.Sleep(time.Second/time.Duration(frameRate) - end.Sub(start))
