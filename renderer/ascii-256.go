@@ -28,7 +28,9 @@ func ascii256(img cv.Mat) error {
 				imgPtr[i*img.Cols()*3+j+1],
 				imgPtr[i*img.Cols()*3+j])
 		}
-		fmt.Print("\n")
+		if i != img.Rows()-2 {
+			fmt.Println("\033[K")
+		}
 	}
 	fmt.Print("\033[J")
 	return nil

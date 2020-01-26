@@ -67,7 +67,12 @@ func (command *screenCommand) Run(args []string) error {
 
 	running := true
 	terminalSize := pixonterm.TermSize()
-	go pixonterm.EventHandler(&running, &terminalSize)
+	go pixonterm.EventHandler(func() {
+		running = false
+		pixonterm.RecoverTerm()
+	}, func() {
+		terminalSize = pixonterm.TermSize()
+	})
 
 	pixonterm.SetTerm()
 	defer pixonterm.RecoverTerm()

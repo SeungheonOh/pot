@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"image"
 	"os"
+	"time"
 
 	"github.com/SeungheonOh/PixelOnTerminal/pixonterm"
 	cv "gocv.io/x/gocv"
@@ -57,14 +58,27 @@ func (command *imageCommand) Run(args []string) error {
 	file := args[0]
 	fs.Parse(args[1:])
 
-	running := true
-	terminalSize := pixonterm.TermSize()
-	if command.repeatImage {
-		go pixonterm.EventHandler(&running, &terminalSize)
-	}
-
 	img := cv.NewMat()
 	defer img.Close()
+
+	running := true
+	redraw := true
+	terminalSize := pixonterm.TermSize()
+
+	if command.repeatImage {
+		go pixonterm.EventHandler(func() {
+			running = false
+			pixonterm.RecoverTerm()
+		}, func() {
+			terminalSize = pixonterm.TermSize()
+			err := command.Load(&img, file)
+			if err != nil {
+				running = false
+				return
+			}
+			redraw = true
+		})
+	}
 
 	err := command.Load(&img, file)
 	if err != nil {
@@ -75,9 +89,9 @@ func (command *imageCommand) Run(args []string) error {
 	defer pixonterm.RecoverTerm()
 
 	for run := true; run; run = command.repeatImage && running {
-		err = command.Load(&img, file)
-		if err != nil {
-			return err
+		if !redraw {
+			redraw = false
+			continue
 		}
 		var imgSize image.Point
 		if command.fullScreen {
@@ -89,6 +103,9 @@ func (command *imageCommand) Run(args []string) error {
 		err := pixonterm.PrintMat(img, command.renderer)
 		if err != nil {
 			return errors.New("failed to print image")
+		}
+		if command.repeatImage {
+			time.Sleep(time.Duration(100) * time.Millisecond)
 		}
 	}
 

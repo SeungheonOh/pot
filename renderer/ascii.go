@@ -40,9 +40,10 @@ func ascii(imgOri cv.Mat) error {
 		for j := 0; j < img.Cols(); j++ {
 			fmt.Fprintf(os.Stdout, string(Bitmask[(imgPtr[i*img.Cols()+j]>>5)]))
 		}
-		fmt.Print("\n")
+		if i != img.Rows()-2 {
+			fmt.Println("\033[K")
+		}
 	}
-	fmt.Print("\n")
 
 	fmt.Print("\033[J")
 	return nil

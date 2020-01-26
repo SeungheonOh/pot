@@ -45,20 +45,26 @@ func CalculateSize(img cv.Mat, term image.Point) image.Point {
 	return ret
 }
 
-func EventHandler(running *bool, termsize *image.Point) {
+func EventHandler(InterruptCallback func(), SigWinchCallback func()) {
 	var signals = make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGWINCH)
 	for {
 		sig := <-signals
 		switch sig {
 		case os.Interrupt:
-			*running = false
-			RecoverTerm()
+			InterruptCallback()
+			/*
+				*running = false
+				RecoverTerm()
+			*/
 			close(signals)
 			return
 		case syscall.SIGWINCH:
-			width, height, _ := terminal.GetSize(int(os.Stdout.Fd()))
-			*termsize = image.Point{width, height}
+			/*
+				width, height, _ := terminal.GetSize(int(os.Stdout.Fd()))
+				*termsize = image.Point{width, height}
+			*/
+			SigWinchCallback()
 		}
 	}
 }

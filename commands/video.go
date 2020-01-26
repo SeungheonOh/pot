@@ -63,9 +63,15 @@ func (command *videoCommand) Run(args []string) error {
 	}
 
 	running := true
-	terminalSize := pixonterm.TermSize()
 	frameRate := int(stream.Get(5))
-	go pixonterm.EventHandler(&running, &terminalSize)
+	terminalSize := pixonterm.TermSize()
+
+	go pixonterm.EventHandler(func() {
+		running = false
+		pixonterm.RecoverTerm()
+	}, func() {
+		terminalSize = pixonterm.TermSize()
+	})
 
 	pixonterm.SetTerm()
 	defer pixonterm.RecoverTerm()
