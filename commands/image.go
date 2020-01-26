@@ -65,23 +65,20 @@ func (command *imageCommand) Run(args []string) error {
 
 	img := cv.NewMat()
 	defer img.Close()
-	if !command.loadUrl {
-		img = cv.IMRead(file, cv.IMReadColor)
-	} else {
-		webImg, err := pixonterm.LoadFromURL(file)
-		img = webImg
-		if err != nil {
-			return errors.New("failed to load image")
-		}
-	}
-	if img.Empty() {
-		return errors.New("failed to load image")
+
+	err := command.Load(&img, file)
+	if err != nil {
+		return err
 	}
 
 	pixonterm.SetTerm()
 	defer pixonterm.RecoverTerm()
 
 	for run := true; run; run = command.repeatImage && running {
+		err = command.Load(&img, file)
+		if err != nil {
+			return err
+		}
 		var imgSize image.Point
 		if command.fullScreen {
 			imgSize = image.Point{X: terminalSize.X, Y: terminalSize.Y * 2}
@@ -95,5 +92,21 @@ func (command *imageCommand) Run(args []string) error {
 		}
 	}
 
+	return nil
+}
+
+func (command *imageCommand) Load(img *cv.Mat, file string) error {
+	if !command.loadUrl {
+		*img = cv.IMRead(file, cv.IMReadColor)
+	} else {
+		webImg, err := pixonterm.LoadFromURL(file)
+		*img = webImg
+		if err != nil {
+			return errors.New("failed to load image")
+		}
+	}
+	if img.Empty() {
+		return errors.New("failed to load image")
+	}
 	return nil
 }

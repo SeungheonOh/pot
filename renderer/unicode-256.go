@@ -15,7 +15,7 @@ func init() {
 func unicode256(img cv.Mat) error {
 	imgPtr := img.DataPtrUint8()
 	if img.Cols()*img.Rows()*3 != len(imgPtr) {
-		return errors.New("Only supports Color RGB image for now")
+		return errors.New("Color RGB image is only supported")
 	}
 
 	// Move cursor to 0, 0
