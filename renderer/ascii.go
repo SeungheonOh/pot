@@ -28,12 +28,13 @@ func init() {
 	RendererMap["ascii"] = ascii
 }
 
-func ascii(imgOri cv.Mat) error {
+func ascii(imgOri cv.Mat, size image.Point) error {
+	cv.Resize(imgOri, &imgOri, size, 0, 0, 1)
 
 	img := imgOri.Clone()
 	cv.CvtColor(img, &img, 7)
 	cv.GaussianBlur(img, &img, image.Point{3, 3}, 2, 2, 0)
-	cv.Canny(img, &img, 30, 50)
+	//cv.Canny(img, &img, 30, 50)
 	//cv.Laplacian(img, &img, 10, 3, 1, 0, 0)
 	//cv.Sobel(img, &img, 10, 1, 0, 3, 1, 0, 0)
 

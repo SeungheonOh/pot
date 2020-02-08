@@ -97,8 +97,7 @@ func (command *videoCommand) Run(args []string) error {
 		} else {
 			imgSize = pixonterm.CalculateSize(img, terminalSize)
 		}
-		cv.Resize(img, &img, imgSize, 0, 0, 1)
-		err := pixonterm.PrintMat(img, command.renderer)
+		err := pixonterm.PrintMat(img, imgSize, command.renderer)
 		if err != nil {
 			return err
 		}

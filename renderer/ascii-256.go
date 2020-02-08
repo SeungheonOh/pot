@@ -3,6 +3,7 @@ package renderer
 import (
 	"errors"
 	"fmt"
+	"image"
 	"os"
 
 	cv "gocv.io/x/gocv"
@@ -12,7 +13,9 @@ func init() {
 	RendererMap["ascii-256"] = ascii256
 }
 
-func ascii256(img cv.Mat) error {
+func ascii256(img cv.Mat, size image.Point) error {
+	cv.Resize(img, &img, size, 0, 0, 1)
+
 	imgPtr := img.DataPtrUint8()
 
 	if img.Cols()*img.Rows()*3 != len(imgPtr) {
