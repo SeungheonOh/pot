@@ -9,7 +9,7 @@ const (
 	SUBCOMMANDS      = "\u001b[32mSUBCOMMANDS\u001b[0m"
 	OPTIONS          = "\u001b[32mOPTIONS\u001b[0m"
 	DESCRIPTION      = "\u001b[32mDESCRIPTION\u001b[0m"
-	DEFAULT_RENDERER = "unicode-256"
+	DEFAULT_RENDERER = "high-res"
 )
 
 var CommandMap = make(map[string]Command)
