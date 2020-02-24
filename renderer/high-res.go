@@ -91,7 +91,7 @@ var ChSet = []Character{
 }
 
 func init() {
-	RendererMap["high-res"] = HighPix
+	RendererMap["high-res"] = HighRes
 }
 
 func CompMask(m1, m2 [32]int) float64 {
@@ -104,7 +104,7 @@ func CompMask(m1, m2 [32]int) float64 {
 	return score
 }
 
-func HighPix(img cv.Mat, size image.Point) error {
+func HighRes(img cv.Mat, size image.Point) error {
 	var wg sync.WaitGroup
 	buffer := make([]string, (size.X)*(size.Y))
 	size.X *= 4
