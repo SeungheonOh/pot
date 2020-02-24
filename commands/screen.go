@@ -90,7 +90,6 @@ func (command *screenCommand) Run(args []string) error {
 		if err != nil {
 			return errors.New("Failed to parse bytes")
 		}
-		defer img.Close()
 		var imgSize image.Point
 		if command.fullScreen {
 			imgSize = image.Point{X: terminalSize.X, Y: terminalSize.Y * 2}
@@ -102,6 +101,8 @@ func (command *screenCommand) Run(args []string) error {
 		if err != nil {
 			return err
 		}
+
+		img.Close()
 	}
 
 	return nil

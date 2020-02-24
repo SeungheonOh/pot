@@ -78,9 +78,8 @@ func (command *videoCommand) Run(args []string) error {
 
 	for running {
 		start := time.Now()
-
 		img := cv.NewMat()
-		defer img.Close()
+
 		ok := stream.Read(&img)
 		if !ok {
 			if command.repeat {
@@ -103,6 +102,8 @@ func (command *videoCommand) Run(args []string) error {
 		}
 		end := time.Now()
 		time.Sleep(time.Second/time.Duration(frameRate) - end.Sub(start))
+
+		img.Close()
 	}
 
 	fmt.Print("\033c")

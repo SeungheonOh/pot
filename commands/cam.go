@@ -68,7 +68,6 @@ func (command *camCommand) Run(args []string) error {
 
 	for running {
 		img := cv.NewMat()
-		defer img.Close()
 		webcam.Read(&img)
 		var imgSize image.Point
 		if command.fullScreen {
@@ -80,6 +79,8 @@ func (command *camCommand) Run(args []string) error {
 		if err != nil {
 			return err
 		}
+
+		img.Close()
 	}
 
 	fmt.Print("\033c")
