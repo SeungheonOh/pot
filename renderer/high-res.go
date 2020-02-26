@@ -42,10 +42,18 @@ var ChSet = []Character{
 	Character{Mask: [32]int{0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, C: "▝"},
 	Character{Mask: [32]int{0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0}, C: "▞"},
 	Character{Mask: [32]int{0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, C: "▟"},
-	// ASCII
-	Character{Mask: [32]int{1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1}, C: "@"},
 	Character{Mask: [32]int{0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0}, C: "/"},
 	Character{Mask: [32]int{1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1}, C: "\\"},
+	Character{Mask: [32]int{0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0}, C: "|"},
+	Character{Mask: [32]int{0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0}, C: "|"},
+	Character{Mask: [32]int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, C: "-"},
+	Character{Mask: [32]int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, C: "─"},
+	Character{Mask: [32]int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0}, C: "┏"},
+	Character{Mask: [32]int{0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0}, C: "┇"},
+
+	// ASCII
+	/* It kindda looks bad
+	Character{Mask: [32]int{1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1}, C: "@"},
 	Character{Mask: [32]int{1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0}, C: "["},
 	Character{Mask: [32]int{0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1}, C: "]"},
 	Character{Mask: [32]int{0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0}, C: "!"},
@@ -73,6 +81,7 @@ var ChSet = []Character{
 	Character{Mask: [32]int{1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1}, C: "X"},
 	Character{Mask: [32]int{1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0}, C: "Y"},
 	Character{Mask: [32]int{1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1}, C: "Z"},
+	*/
 	/* Templete
 	Character{
 		Mask: [32]int{
@@ -110,6 +119,7 @@ func HighRes(img cv.Mat, size image.Point) error {
 	size.X *= 4
 	size.Y *= 4
 	cv.Resize(img, &img, size, 0, 0, 1)
+	cv.GaussianBlur(img, &img, image.Point{3, 3}, 0, 0, 1)
 
 	imgPtr := img.DataPtrUint8()
 
@@ -165,7 +175,6 @@ func HighRes(img cv.Mat, size image.Point) error {
 				for SubY := 0; SubY < 8; SubY++ {
 					for SubX := 0; SubX < 4*3; SubX += 3 {
 						index := (y+SubY)*img.Cols()*3 + SubX + x
-						//index := y*img.Cols()*3 + (y+SubY)*img.Cols()*3 + SubX + x
 						r := int(imgPtr[index])
 						g := int(imgPtr[index+1])
 						b := int(imgPtr[index+2])
@@ -200,9 +209,7 @@ func HighRes(img cv.Mat, size image.Point) error {
 				g2 := histogramSum[top_result[1]][1]
 				b2 := histogramSum[top_result[1]][2]
 
-				//fmt.Printf("\033[48;2;%d;%d;%dm\033[38;2;%d;%d;%dm"+ChSet[minIndex].C+"\033[49m\033[39m", b1, g1, r1, b2, g2, r2)
-				index = y/8*(img.Cols()/4) + x/12
-				buffer[index] = fmt.Sprintf("\033[48;2;%d;%d;%dm\033[38;2;%d;%d;%dm"+ChSet[minIndex].C+"\033[49m\033[39m", b1, g1, r1, b2, g2, r2)
+				buffer[y/8*(img.Cols()/4)+x/12] = fmt.Sprintf("\033[48;2;%d;%d;%dm\033[38;2;%d;%d;%dm"+ChSet[minIndex].C+"\033[49m\033[39m", b1, g1, r1, b2, g2, r2)
 				wg.Done()
 			}(x, y)
 		}
