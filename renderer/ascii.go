@@ -2,8 +2,8 @@ package renderer
 
 import (
 	"fmt"
+  "bytes"
 	"image"
-	"os"
 
 	cv "gocv.io/x/gocv"
 )
@@ -28,7 +28,8 @@ func init() {
 	RendererMap["ascii"] = ascii
 }
 
-func ascii(imgOri cv.Mat, size image.Point) error {
+func ascii(imgOri cv.Mat, size image.Point) (string, error) {
+  var buffer bytes.Buffer
 	cv.Resize(imgOri, &imgOri, size, 0, 0, 1)
 
 	img := imgOri.Clone()
@@ -40,17 +41,15 @@ func ascii(imgOri cv.Mat, size image.Point) error {
 
 	imgPtr := img.DataPtrUint8()
 
-	fmt.Print("\033[0;0H")
-
 	for i := 0; i < img.Rows(); i += 2 {
 		for j := 0; j < img.Cols(); j++ {
-			fmt.Fprintf(os.Stdout, string(Bitmask[(imgPtr[i*img.Cols()+j]>>5)]))
+			fmt.Fprintf(&buffer, string(Bitmask[(imgPtr[i*img.Cols()+j]>>5)]))
 		}
 		if i != img.Rows()-2 {
-			fmt.Println("\033[K")
+      fmt.Fprintf(&buffer, "\033[K\n")
 		}
 	}
 
-	fmt.Print("\033[J")
-	return nil
+  fmt.Fprintf(&buffer, "\033[J")
+	return buffer.String(), nil
 }

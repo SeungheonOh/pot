@@ -1,6 +1,7 @@
 package renderer
 
 import (
+  "bytes"
 	"fmt"
 	"image"
 	"math"
@@ -113,7 +114,7 @@ func CompMask(m1, m2 [32]int) float64 {
 	return score
 }
 
-func HighRes(img cv.Mat, size image.Point) error {
+func HighRes(img cv.Mat, size image.Point) (string, error) {
 	var wg sync.WaitGroup
 	buffer := make([]string, (size.X)*(size.Y))
 	size.X *= 4
@@ -216,14 +217,16 @@ func HighRes(img cv.Mat, size image.Point) error {
 	}
 	wg.Wait()
 
+  var retbuffer bytes.Buffer
+
 	// printing buffer
 	for y := 0; y < img.Rows()/8; y++ {
 		for x := 0; x < img.Cols()/4; x++ {
-			fmt.Print(buffer[y*(img.Cols()/4)+x])
+			fmt.Fprintf(&retbuffer, buffer[y*(img.Cols()/4)+x])
 		}
 		if y != img.Rows()/8-1 {
-			fmt.Printf("\n")
+			fmt.Fprintf(&retbuffer, "\n")
 		}
 	}
-	return nil
+	return retbuffer.String(), nil
 }
