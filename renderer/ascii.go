@@ -49,7 +49,5 @@ func ascii(imgOri cv.Mat, size image.Point) (string, error) {
       fmt.Fprintf(&buffer, "\033[K\n")
 		}
 	}
-
-  fmt.Fprintf(&buffer, "\033[J")
 	return buffer.String(), nil
 }

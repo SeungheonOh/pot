@@ -34,6 +34,5 @@ func ascii256(img cv.Mat, size image.Point) (string, error) {
 			fmt.Fprintf(&buffer, "\033[K\n")
 		}
   }
-	fmt.Fprintf(&buffer, "\033[J")
 	return buffer.String(), nil
 }

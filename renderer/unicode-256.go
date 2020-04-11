@@ -49,8 +49,6 @@ func unicode256(img cv.Mat, size image.Point) (string, error) {
 			fmt.Fprintf(&buffer, "\033[K\n")
 		}
 	}
-	// Clear from the end of the picture to the bottom of the tty
-	// Also avoids leftover artifacts when image doesn't fill the tty
-	fmt.Fprintf(&buffer, "\033[J")
+
 	return buffer.String(), nil
 }

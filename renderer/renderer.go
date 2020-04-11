@@ -19,5 +19,8 @@ func Render(img cv.Mat, size image.Point, name string) error {
   out, err := renderer(img, size)
 	fmt.Fprintf(os.Stdout, "\033[0;0H")
   fmt.Fprintf(os.Stdout, out)
+	// Clear from the end of the picture to the bottom of the tty
+	// Also avoids leftover artifacts when image doesn't fill the tty
+	fmt.Fprintf(os.Stdout, "\033[J")
   return err
 }
