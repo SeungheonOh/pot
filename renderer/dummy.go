@@ -9,14 +9,14 @@ import (
 )
 
 func init() {
-	RendererMap["dummy"] = dummy
+	RendererMap["dummy"] = Dummy
 }
 
-func dummy(img cv.Mat, size image.Point) (string, error) {
+func Dummy(img cv.Mat, size image.Point) (string, error) {
   var buffer bytes.Buffer
 	fmt.Fprintf(&buffer, "This is debug renderer for retriving image informations.")
 	fmt.Fprintf(&buffer, "Image Size:")
-	fmt.Fprintf(&buffer, "Cols: ", img.Cols(), " Rows: ", img.Rows())
+  fmt.Fprintf(&buffer, "Cols: %d \nRows: %d", img.Cols(), img.Rows())
 
 	return buffer.String(), nil
 }

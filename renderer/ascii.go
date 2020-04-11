@@ -25,10 +25,10 @@ var Bitmask = [...]rune{
 }
 
 func init() {
-	RendererMap["ascii"] = ascii
+	RendererMap["ascii"] = Ascii
 }
 
-func ascii(imgOri cv.Mat, size image.Point) (string, error) {
+func Ascii(imgOri cv.Mat, size image.Point) (string, error) {
   var buffer bytes.Buffer
 	cv.Resize(imgOri, &imgOri, size, 0, 0, 1)
 

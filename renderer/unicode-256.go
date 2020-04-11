@@ -10,10 +10,10 @@ import (
 )
 
 func init() {
-	RendererMap["unicode-256"] = unicode256
+	RendererMap["unicode-256"] = Unicode256
 }
 
-func unicode256(img cv.Mat, size image.Point) (string, error) {
+func Unicode256(img cv.Mat, size image.Point) (string, error) {
   var buffer bytes.Buffer
 	cv.Resize(img, &img, size, 0, 0, 1)
 

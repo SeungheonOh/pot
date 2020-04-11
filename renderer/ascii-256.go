@@ -10,10 +10,10 @@ import (
 )
 
 func init() {
-	RendererMap["ascii-256"] = ascii256
+	RendererMap["ascii-256"] = Ascii256
 }
 
-func ascii256(img cv.Mat, size image.Point) (string, error) {
+func Ascii256(img cv.Mat, size image.Point) (string, error) {
   var buffer bytes.Buffer
 	cv.Resize(img, &img, size, 0, 0, 1)
 
