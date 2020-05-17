@@ -94,12 +94,13 @@ func (command *imageCommand) Run(args []string) error {
 			continue
 		}
 		var imgSize image.Point
+		imgclone := img.Clone()
 		if command.fullScreen {
 			imgSize = image.Point{X: terminalSize.X, Y: terminalSize.Y * 2}
 		} else {
 			imgSize = pixonterm.CalculateSize(img, terminalSize)
 		}
-		err := pixonterm.PrintMat(img, imgSize, command.renderer)
+		err := pixonterm.PrintMat(imgclone, imgSize, command.renderer)
 		if err != nil {
 			return err
 		}
