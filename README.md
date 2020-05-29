@@ -1,72 +1,51 @@
 # PixelOnTerminal
 **These are Pixels, but in Terminals**
-Light terminal media viewer using nothing but OpenCV
+Light terminal media viewer with modularized loader and render engine. 
 
 ## Requirement
-Download with `go get https://github.com/SeungheonOh/PixelOnTerminal.git`
-or `git clone https://github.com/SeungheonOh/PixelOnTerminal.git`
-
-build with ```go build main.go``` and copy/rename compile executable ```main``` to your PATH.
-
-To build the project, you need 
+Compile time
 ```
-Gocv
-Crypto
-Xlib(required only for screen subcommand)
+Nothing but standard Go library
+```
+Runtime 
+```
+ffmpeg (for ffmpeg based loader)
 ```
 
-## Renderers
-### Why
-Pix has very easy to add/configure renderers, fully modularized by files. User can write their own why to print Image to the terminal, like ascii-only renderer or no-unicode renderer.
+## Modularity
+Upon many re-desiging and planning, PixelOnTerminal got modular desigin where users can add their own media loader 
+and render engine. This modularity gives ease of maintenance, simpler expension of features and customizability.
 
-### How to write one?
-```renderer/ascii.go``` would be a great example. 
-For additional information, it's getting ```cv.Mat```, which is already been resized for terminal size.
-```cv.Mat``` has size of (Terminal Cols)x(Terminal Rows * 2), Rows are as twice as big as terminal size since one character in terminal takes of 
-1x2 space(█) instead of 1x1. 
+### Loaders
+PixelOnTerminal only has one loader, ffmpeg based loader. However additional loaders, like linux pipe 
+based loader, can be easily depolyed.
 
-Render function can be used in many possible ways, including, but not limited to, process given image to print on the screen.
-For example, Pixel on Terminal can be also used in X screen capturing with recording processor(or renderer).
+The FFmpeg based loader is cabable of loading codecs and formats supported by ffmpeg--```ffmpeg -codecs & ffmpeg -formats```
 
-## Subcommands
-```
-SUBCOMMANDS
-	video   {File} [-Options]
-		Play file on the terminal
-		GIF format also does with this subcommand
+Currently, only buffered loaders are supported, but non-buffered loader is on its way for live feeds.
 
-	cam
-		Cam subcommand loads webcam stream, print via Pixel On Terminal
-
-	help    {SubCommand}
-		Help Messages
-
-	image   {File} [Options]
-		Print file on the terminal
-		subcommand url is equivlent to subcommand image with -u flag
-
-	screen   [{X-Cord} {Y-Cord} {Width} {Height}] [Options]
-		Capture from screen with specified dimension
-		(currently only Xorg api supported)
-
-	url   {URL} [Option]
-		Print image from URL, equivlent of 'image' with '-d' option
-```
+### Render Engines
+It have got even easier to make a new render engine because now it works upon Go ```image.Image```!
+The universial sampling support is comming which will make adding new glyphs on the render engine easier.
 
 ## Examples
 
-![WhiteOut](https://github.com/SeungheonOh/PixelOnTerminal/blob/master/doc/whiteout_small.png)
-![Vim](https://github.com/SeungheonOh/PixelOnTerminal/blob/master/doc/vim_small.png)
-![Youtube](https://github.com/SeungheonOh/PixelOnTerminal/blob/master/doc/youtube_small.png)
+![Earth](https://github.com/SeungheonOh/PixelOnTerminal/blob/master/doc/earth.png)
+This image was rendered by 4x8 sampling render engine.
 
 ## Things to do (Maybe you can contribute)
 - [x] Proper CLI system. 
 - [x] Unified input selection for video, image, and cam.
+- [ ] New loaders for video live feed.
+- [ ] Universial sampling support.
 - [ ] Get Some Stars (Yes press that Star NOW)
 
 ## Demo
 [Demo at Reddit](https://www.reddit.com/r/unixporn/comments/d1gksi/oc_fully_terminal_based_webcamvideoimage_viewer/?utm_source=share&utm_medium=web2x)
+This demo is one of the earliest version of PixelOnTerminal and is outdated.
 
 ## Inspired by
 [Pastel](https://github.com/sharkdp/pastel) -> Definatly one of my favorate CLI app!
 
+## Thanks to
+[Diamondburned](https://github.com/diamondburned)
