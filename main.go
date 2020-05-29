@@ -97,6 +97,7 @@ func (c *Context) Load() error {
 	if err != nil {
 		return err
 	}
+	c.buffer = nil
 	c.buffer = frames
 	return nil
 }
