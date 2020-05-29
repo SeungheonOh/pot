@@ -9,7 +9,9 @@ import (
 	"image/color"
 	"io"
 	"os/exec"
+	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -21,7 +23,9 @@ func init() {
 const (
 	DEFAULT_FFMPEG_COMMAND_STRING = "ffmpeg -hide_banner -i %s -s %s -vf fps=15/1 -f rawvideo -c:v rawvideo -pix_fmt rgb24 -"
 	// Dryrun is for getting total frames
-	FFMPEG_DRYRUN = "ffmpeg -hide_banner -i %s -s 1x1 -vf fps=15/1 -f rawvideo -c:v rawvideo -pix_fmt rgb24 -"
+	FFMPEG_DRYRUN     = "ffmpeg -hide_banner -i %s -s 1x1 -vf fps=15/1 -f rawvideo -c:v rawvideo -pix_fmt rgb24 -"
+	FFMPEG_IMAGE_SIZE = "ffmpeg -i %s -f null -"
+	// | grep -oP 'Stream .*, \\K[0-9]+x[0-9]+'
 )
 
 var (
@@ -96,6 +100,31 @@ func NewFFMPEG(options ...string) MediaLoader {
 	return &FFMPEG{
 		commandstring: DEFAULT_FFMPEG_COMMAND_STRING,
 	}
+}
+
+func (l *FFMPEG) ImageSize(filename string) (image.Point, error) {
+	cmds := strings.Split(fmt.Sprintf(FFMPEG_IMAGE_SIZE, filename), " ")
+	cmd := exec.Command(cmds[0], cmds[1:]...)
+
+	cmdout := &bytes.Buffer{}
+
+	cmd.Stderr = cmdout
+
+	cmd.Run()
+	reg := regexp.MustCompile("Stream .*, [0-9]+x[0-9]+")
+	if !reg.MatchString(cmdout.String()) {
+		return image.Point{-1, -1}, errors.New("Failed to fetch size")
+	}
+	res := strings.Split(reg.FindString(cmdout.String()), " ")
+
+	s := strings.Split(res[len(res)-1], "x")
+	x, errx := strconv.Atoi(s[0])
+	y, erry := strconv.Atoi(s[1])
+	if errx != nil && erry != nil {
+		return image.Point{-1, -1}, errors.New(fmt.Sprint("Failed to parse numbers: \n\t", cmdout.String()))
+	}
+
+	return image.Point{x, y}, nil
 }
 
 func (l *FFMPEG) GetTotalFrames(filename string) (int, error) {

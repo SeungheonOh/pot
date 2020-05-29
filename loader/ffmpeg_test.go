@@ -18,6 +18,7 @@ const (
 func TestLoadingVideo(t *testing.T) {
 	fmt.Println("==loading video==")
 	loader := NewFFMPEG()
+	fmt.Println(loader.ImageSize(MEDIA_VIDEO))
 	frames, err := loader.Load(MEDIA_VIDEO, image.Point{200, 100})
 	if err != nil {
 		t.Fatal(err)
