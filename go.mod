@@ -3,7 +3,6 @@ module github.com/SeungheonOh/PixelOnTerminal
 go 1.13
 
 require (
-	gocv.io/x/gocv v0.22.0
 	golang.org/x/crypto v0.0.0-20200406173513-056763e48d71
 	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e // indirect
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a

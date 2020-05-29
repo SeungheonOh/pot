@@ -1,38 +1,37 @@
 package renderer
 
 import (
-	"errors"
+	"bytes"
+	"fmt"
 	"image"
-  "fmt"
-  "bytes"
-
-	cv "gocv.io/x/gocv"
 )
 
 func init() {
-	RendererMap["ascii-256"] = Ascii256
+	RendererMap["ascii-256"] = NewAscii256
 }
 
-func Ascii256(img cv.Mat, size image.Point) (string, error) {
-  var buffer bytes.Buffer
-	cv.Resize(img, &img, size, 0, 0, 1)
+type Ascii256 struct {
+}
 
-	imgPtr := img.DataPtrUint8()
+func NewAscii256(options ...string) RenderEngine {
+	return &Ascii256{}
+}
 
-	if img.Cols()*img.Rows()*3 != len(imgPtr) {
-		return "", errors.New("Color RGB image is only supported")
+func (r *Ascii256) Size(size image.Point) image.Point {
+	return image.Point{size.X, size.Y}
+}
+
+func (r *Ascii256) Render(img image.Image) (string, error) {
+	var ret bytes.Buffer
+	for i := 0; i < img.Bounds().Max.Y-1; i++ {
+		for j := 0; j < img.Bounds().Max.X; j++ {
+			r, g, b, _ := img.At(j, i).RGBA()
+			fmt.Fprintf(&ret, "\033[38;2;%d;%d;%dm█\033[39m",
+				r/257,
+				g/257,
+				b/257)
+		}
+		fmt.Fprintf(&ret, "\n")
 	}
-
-	for i := 0; i < img.Rows(); i += 2 {
-		for j := 0; j < img.Cols()*3; j += 3 {
-			fmt.Fprintf(&buffer, "\033[38;2;%d;%d;%dm█\033[39m",
-				imgPtr[i*img.Cols()*3+j+2],
-				imgPtr[i*img.Cols()*3+j+1],
-				imgPtr[i*img.Cols()*3+j])
-		}
-		if i != img.Rows()-2 {
-			fmt.Fprintf(&buffer, "\033[K\n")
-		}
-  }
-	return buffer.String(), nil
+	return ret.String(), nil
 }

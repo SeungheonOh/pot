@@ -1,18 +1,13 @@
 package renderer
 
-import (
-	"fmt"
-  "bytes"
-	"image"
-
-	cv "gocv.io/x/gocv"
-)
+//cv "gocv.io/x/gocv"
 
 /*
  Simple Brightness based Ascii renderer.
  No facny pixel masking or stuff
 */
 
+/*
 var Bitmask = [...]rune{
 	' ',
 	' ',
@@ -25,11 +20,11 @@ var Bitmask = [...]rune{
 }
 
 func init() {
-	RendererMap["ascii"] = Ascii
+	//RendererMap["ascii"] = Ascii
 }
 
 func Ascii(imgOri cv.Mat, size image.Point) (string, error) {
-  var buffer bytes.Buffer
+	var buffer bytes.Buffer
 	cv.Resize(imgOri, &imgOri, size, 0, 0, 1)
 
 	img := imgOri.Clone()
@@ -46,8 +41,9 @@ func Ascii(imgOri cv.Mat, size image.Point) (string, error) {
 			fmt.Fprintf(&buffer, string(Bitmask[(imgPtr[i*img.Cols()+j]>>5)]))
 		}
 		if i != img.Rows()-2 {
-      fmt.Fprintf(&buffer, "\033[K\n")
+			fmt.Fprintf(&buffer, "\033[K\n")
 		}
 	}
 	return buffer.String(), nil
 }
+*/

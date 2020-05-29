@@ -1,17 +1,12 @@
 package renderer
 
-import (
-	"bytes"
-	"fmt"
-	"image"
-
-	cv "gocv.io/x/gocv"
-)
+//cv "gocv.io/x/gocv"
 
 func init() {
-	RendererMap["dummy"] = Dummy
+	//RendererMap["dummy"] = Dummy
 }
 
+/*
 func Dummy(img cv.Mat, size image.Point) (string, error) {
 	var buffer bytes.Buffer
 	fmt.Fprintf(&buffer, "This is debug renderer for retriving image informations.\n")
@@ -22,3 +17,4 @@ func Dummy(img cv.Mat, size image.Point) (string, error) {
 
 	return buffer.String(), nil
 }
+*/

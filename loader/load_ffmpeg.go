@@ -14,10 +14,14 @@ import (
 	"sync"
 )
 
+func init() {
+	LoaderMap["FFMPEG"] = NewFFMPEG
+}
+
 const (
-	DEFAULT_FFMPEG_COMMAND_STRING = "ffmpeg -i %s -s %s -vf fps=30/1 -f rawvideo -c:v rawvideo -pix_fmt rgb24 -"
+	DEFAULT_FFMPEG_COMMAND_STRING = "ffmpeg -hide_banner -i %s -s %s -vf fps=15/1 -f rawvideo -c:v rawvideo -pix_fmt rgb24 -"
 	// Dryrun is for getting total frames
-	FFMPEG_DRYRUN = "ffmpeg -i %s -s 1x1 -vf fps=30/1 -f rawvideo -c:v rawvideo -pix_fmt rgb24 -"
+	FFMPEG_DRYRUN = "ffmpeg -hide_banner -i %s -s 1x1 -vf fps=15/1 -f rawvideo -c:v rawvideo -pix_fmt rgb24 -"
 )
 
 var (
@@ -83,10 +87,10 @@ type FFMPEG struct {
 	commandstring string
 }
 
-func NewFFMPEG(option ...string) *FFMPEG {
-	if len(option) > 0 {
+func NewFFMPEG(options ...string) MediaLoader {
+	if len(options) > 0 && options[0] != "" {
 		return &FFMPEG{
-			commandstring: option[0],
+			commandstring: options[0],
 		}
 	}
 	return &FFMPEG{
@@ -146,7 +150,7 @@ func (l *FFMPEG) Load(filename string, size image.Point) ([]image.Image, error) 
 
 	err := cmd.Run()
 	if err != nil {
-		return nil, errors.New(fmt.Sprint("Error when running ffmpeg binary: ", err, cmderr.String()))
+		return nil, errors.New(fmt.Sprint("Error when running ffmpeg binary: \n\t", cmderr.String()))
 	}
 
 	framesize, err := l.GetTotalFrames(filename)
