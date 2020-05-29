@@ -12,13 +12,14 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/SeungheonOh/PixelOnTerminal/internal"
 	"github.com/SeungheonOh/PixelOnTerminal/loader"
 	"github.com/SeungheonOh/PixelOnTerminal/renderer"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
 const (
-	DEFAULT_RENDERER = ""
+	DEFAULT_RENDERER = "4x8"
 	DEFAULT_LOADER   = "FFMPEG"
 )
 
@@ -38,7 +39,7 @@ func NewContext(filename string, options FlagOptions) *Context {
 		filename: filename,
 		repeat:   options.repeat,
 		loader:   loader.LoaderMap[DEFAULT_LOADER](options.loaderoption),
-		renderer: renderer.RendererMap["4x8"](options.rendereroption),
+		renderer: renderer.RendererMap[DEFAULT_LOADER](options.rendereroption),
 		size:     TermSize(),
 	}
 
@@ -85,9 +86,15 @@ func FlagSet() (*flag.FlagSet, *FlagOptions) {
 	fs.Usage = func() {
 		fmt.Printf(`
 PixelOnTerminal
-	Usage: %s [FILE] [OPTIONS]...
-	Print pixels in terminal screen
-		`, filepath.Base(os.Args[0]))
+Print pixels in terminal screen
+
+Usage: 
+  %s [FILE] [OPTIONS]...
+
+Options:
+`, filepath.Base(os.Args[0]))
+
+		fs.PrintDefaults()
 		os.Exit(0)
 	}
 
@@ -120,7 +127,12 @@ func main() {
 	ctx := NewContext(os.Args[1], *options)
 	fmt.Println(ctx)
 
-	fmt.Fprintf(os.Stdout, "\033[2J\033[0;0HLoading frames to buffers")
+	internal.ClearScreen()
+	internal.Cursor(false)
+	internal.SetCursorPos(0, 0)
+
+	defer internal.Cursor(true)
+	fmt.Fprintf(os.Stdout, "Loading frames to buffers")
 	//defer fmt.Fprintf(os.Stdout, "\033[2J\033[?47l\0338")
 
 	err := ctx.Load()
@@ -151,49 +163,36 @@ func main() {
 	var signals = make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGWINCH)
 
-	for {
-		//stop := timer()
-		// handle signal
-		var buf image.Image
-		select {
-		case sig := <-signals:
-			switch sig {
-			case os.Interrupt:
-				//fmt.Fprintf(os.Stdout, "\033[2J\033[?47l\0338")
-				close(signals)
-				os.Exit(0)
-			case syscall.SIGWINCH:
-				//fmt.Fprintf(os.Stdout, "\033[2J\033[0;0HLoading")
-				ctx.size = TermSize()
-				err := ctx.Load()
-				if err != nil {
+	func() {
+		for {
+			select {
+			case sig := <-signals:
+				switch sig {
+				case os.Interrupt:
 					close(signals)
-					os.Exit(0)
+					return
+				case syscall.SIGWINCH:
+					ctx.size = TermSize()
+					err := ctx.Load()
+					if err != nil {
+						close(signals)
+						return
+					}
 				}
+				continue
+			case buf := <-frame:
+				if buf == nil {
+					return
+				}
+				str, err := ctx.renderer.Render(buf)
+				if err != nil {
+					fmt.Fprint(os.Stderr, err)
+					return
+				}
+				internal.SetCursorPos(0, 0)
+				fmt.Fprintf(os.Stdout, str)
 			}
-			continue
-		case buf = <-frame:
 		}
+	}()
 
-		//buf := ctx.buffer[i]
-		if buf == nil {
-			break
-		}
-		str, err := ctx.renderer.Render(buf)
-		if err != nil {
-			fmt.Fprint(os.Stderr, err)
-			os.Exit(1)
-		}
-		fmt.Fprintf(os.Stdout, "\033[0;0H")
-		fmt.Fprintf(os.Stdout, str)
-
-		/*
-			timeleft := time.Second/30 - stop()
-			if timeleft >= 0 {
-				time.Sleep(timeleft)
-			} else {
-				i += int(timeleft.Seconds() * -1 / (time.Second / 30).Seconds())
-			}
-		*/
-	}
 }
