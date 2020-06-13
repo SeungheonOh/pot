@@ -1,7 +1,6 @@
 { nixpkgs ? import <nixpkgs> { }}:
 let 
   pkgs = with nixpkgs; [
-    opencv4
     pkgconfig
     go
     xorg.libX11
