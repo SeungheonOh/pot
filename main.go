@@ -243,7 +243,7 @@ func main() {
 
 	err := ctx.Load()
 	if err != nil {
-		fmt.Fprint(os.Stderr, err)
+		fmt.Fprint(os.Stderr, err, "\n")
 		os.Exit(1)
 	}
 
