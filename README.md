@@ -1,4 +1,4 @@
-# Pot ( Pixel On Terminal)
+# Pot ( Pixel On Terminal )
 **These are Pixels, but in Terminals**
 Light terminal media viewer with modularized loader and render engine. 
 
