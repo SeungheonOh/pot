@@ -12,9 +12,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/SeungheonOh/PixelOnTerminal/internal"
-	"github.com/SeungheonOh/PixelOnTerminal/loader"
-	"github.com/SeungheonOh/PixelOnTerminal/renderer"
+	"github.com/SeungheonOh/pot/internal"
+	"github.com/SeungheonOh/pot/loader"
+	"github.com/SeungheonOh/pot/renderer"
 )
 
 const (
