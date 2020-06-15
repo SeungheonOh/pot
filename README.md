@@ -1,4 +1,4 @@
-# Pot
+# Pot ( Pixel On Terminal)
 **These are Pixels, but in Terminals**
 Light terminal media viewer with modularized loader and render engine. 
 
@@ -13,7 +13,7 @@ ffmpeg (for ffmpeg based loader)
 ```
 
 ## Modularity
-Upon many re-desiging and planning, PixelOnTerminal got modular desigin where users can add their own media loader 
+Upon many re-desiging and planning, Pot got modular desigin where users can add their own media loader 
 and render engine. This modularity gives ease of maintenance, simpler expension of features and customizability.
 
 ### Loaders
@@ -30,7 +30,7 @@ The universial sampling support is comming which will make adding new glyphs on 
 
 ## Examples
 
-![Earth](https://github.com/SeungheonOh/PixelOnTerminal/blob/master/doc/earth.png)
+![Earth](https://github.com/SeungheonOh/pot/blob/master/doc/earth.png)
 This image was rendered by 4x8 sampling render engine.
 
 ## Things to do (Maybe you can contribute)

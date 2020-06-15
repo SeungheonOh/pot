@@ -206,7 +206,7 @@ func FlagSet() (*flag.FlagSet, *FlagOptions) {
 	fs.SetOutput(os.Stdout)
 	fs.Usage = func() {
 		fmt.Printf(`
-PixelOnTerminal
+pot
 Print pixels in terminal screen
 
 Usage: 
