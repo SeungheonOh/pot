@@ -10,6 +10,7 @@ import (
 )
 
 func init() {
+	LoaderMap["GoimageLoader"] = NewGoimage
 	LoaderMap["std"] = NewGoimage
 }
 

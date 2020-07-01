@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 	"syscall"
@@ -20,6 +21,7 @@ import (
 const (
 	DEFAULT_RENDERER = "4x8"
 	DEFAULT_LOADER   = "FFMPEG"
+	FALLBACK_LOADER  = "GoimageLoader"
 )
 
 /*
@@ -108,6 +110,11 @@ func (c *Context) ReloadSize() {
 func (c *Context) Load() error {
 	frames, err := c.loader.Load(c.filename, c.renderer.Size(c.size))
 	if err != nil {
+		if !strings.HasSuffix(reflect.TypeOf(c.loader).String(), FALLBACK_LOADER) {
+			// Retry with fallback loader
+			c.loader = loader.LoaderMap[FALLBACK_LOADER](c.options.loaderoption)
+			return c.Load()
+		}
 		return err
 	}
 	c.buffer = nil
