@@ -1,4 +1,6 @@
 # Pot ( Pixel On Terminal )
+![Go](https://github.com/SeungheonOh/pot/workflows/Go/badge.svg)
+
 **These are Pixels, but in Terminals**
 Light terminal media viewer with modularized loader and render engine. 
 
